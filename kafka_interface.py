@@ -7,6 +7,7 @@ import threading
 from logging import log
 import logging
 from typing import Callable
+import json
 
 
 
@@ -95,10 +96,18 @@ class KafkaInterface:
             self.consumer_thread.join(timeout=1)
             log(logging.INFO, "Kafka listener thread joined")
 
-    def send_message(self, topic: str, message: any):
-        assert self.producer is None or not self.producer.bootstrap_connected()
-
-        self.producer.send(topic, message)
+    def send_message(self, topic: str, message: bytes | dict):
+        assert self.producer is not None    
+        if isinstance(message, dict):
+            message = json.dumps(message).encode()
+        
+        assert isinstance(message, bytes)
+        
+        future = self.producer.send(topic, message)
+        try:
+            print(future.get(timeout=10));
+        except Exception as ex:
+            print(ex)
 
 def int_signal_handler(sig, _):
     if sig == signal.SIGINT:
@@ -106,7 +115,7 @@ def int_signal_handler(sig, _):
 
 def response_handling(record):
     print(record)
-    client.send_message("pong", record)
+    client.send_message("pong", record.value)
 
 
 def main():
