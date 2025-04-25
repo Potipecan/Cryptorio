@@ -105,7 +105,7 @@ class KafkaInterface:
         
         future = self.producer.send(topic, message)
         try:
-            print(future.get(timeout=10));
+            print(future.get(timeout=10))
         except Exception as ex:
             print(ex)
 
