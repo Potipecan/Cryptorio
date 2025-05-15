@@ -40,7 +40,7 @@ class CryptoDataAggregator(object):
     def add_crypto_sentiment(self, crypto_sentiment: float):
         self.current_interval_sentiments.append(crypto_sentiment)
 
-    def add_crypto_price(self, crypto_price: float):
+    def add_crypto_price(self, crypto_price: tuple[float, float]):
         self.current_interval_prices.append(crypto_price)
 
     def aggregate(self):
@@ -61,14 +61,9 @@ class CryptoDataAggregator(object):
         if len(self.history) > self.n:
             self.history.pop(0)
 
-        if self.export_file is not None:
-            with open(self.export_file, "a") as f:
-                json.dump(d.__dict__(), f)
-                f.write("\n")
-
     def history_to_input_stream(self):
-        arr = np.array([[d.best_bid_high, d.best_bid_avg, d.best_ask_low, d.best_ask_avg, d.sentiment_high,
-                         d.sentiment_low, d.sentiment_avg, ] for d in self.history])
+        arr = np.array([[d.sentiment_high, d.sentiment_low, d.sentiment_avg, d.best_bid_high, d.best_bid_avg, d.best_ask_low, d.best_ask_avg] for d in self.history])
         
         if len(arr) < self.n:
             np.pad(arr, ((self.n - len(arr), 0), (0, 0)), mode='constant', constant_values=0)
+        
